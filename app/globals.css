@@ -1,26 +1,90 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@layer base {
+  /*
+  ** 1. Define Font Faces (You must provide your own Gilroy font files)
+  ** This code assumes you have a local font setup or are using a
+  ** similar replacement (like a different variable font).
+  */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Example setup if using a standard CSS @font-face */
+  /*
+  @font-face {
+    font-family: 'Gilroy';
+    src: url('/fonts/Gilroy-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'Gilroy';
+    src: url('/fonts/Gilroy-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+  }
+  */
 
-@media (prefers-color-scheme: dark) {
+  /* ** 2. Define Rydberg Starck Brand Colors (using HSL values)
+  ** The HSL values are derived from the brand's RGB values [cite: 94, 98, 107]
+  ** (e.g., RGB 18-98-98 is HSL ~180, 71%, 23% - HSL is preferred for Tailwind)
+  */
+
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Rydberg Starck Primary Teal-Green Palette */
+    --rs-dark: 210 30% 10%;           /* Approx RGB 17-28-36 [cite: 94] */
+    --rs-teal-light: 181 80% 29%;     /* Approx RGB 14-130-133 [cite: 107] */
+    --rs-teal-dark: 180 71% 23%;      /* Approx RGB 18-98-98 [cite: 98] */
+
+    /* Sub-Brand Secondary Colors (Optional, but included for completeness) */
+    --rs-orange: 30 96% 59%;          /* Approx RGB 251-171-50 [cite: 101] */
+    --rs-red: 14 86% 54%;             /* Approx RGB 241-90-36 [cite: 117] */
+
+    /* ** 3. Map Shadcn/UI Component Variables to Brand Colors 
+    ** This ensures all existing components use the new brand palette.
+    */
+    
+    --background: 0 0% 100%;           /* White/Light Background [cite: 37, 68] */
+    --foreground: 210 30% 10%;         /* rs-dark for text */
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 30% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 30% 10%;
+
+    --primary: var(--rs-teal-dark);    /* Dark Teal for primary elements */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: var(--rs-teal-light); /* Light Teal for secondary elements */
+    --secondary-foreground: 210 30% 10%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 210 10% 50%;
+
+    --accent: var(--rs-teal-light);
+    --accent-foreground: 210 30% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: var(--rs-teal-light);
+    --input: var(--rs-teal-light);
+    --ring: var(--rs-teal-dark);
+
+    --radius: 0.5rem;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  /* Apply Gilroy Regular to all body text and Gilroy Bold to headings */
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
 }
