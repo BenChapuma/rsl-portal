@@ -19,14 +19,14 @@ export function Sidebar() {
   return (
     <div className="flex flex-col h-full w-64 border-r border-border bg-white shadow-md">
       
-      {/* Brand Logo Area */}
-      <div className="p-4 border-b border-border flex items-center justify-center h-20">
-        {/* Placeholder for Rydberg Starck Logo (assuming rs-logo.png in public) */}
+      {/* Brand Logo Area - FIXED: Increased height to h-32 and adjusted image dimensions */}
+      {/* h-32 provides 8rem (128px) of vertical space, which should be sufficient */}
+      <div className="p-2 border-b border-border flex items-center justify-center h-32">
         <Image
-          src="/Rydberg-Starck-Logo.png" // Ensure this path matches your logo file in /public
+          src="/rs-logo.png" 
           alt="Rydberg Starck Logo"
-          width={200} // Adjust size as needed
-          height={50} // Adjust size as needed
+          width={220} 
+          height={100} // Increased height to utilize the new container space
           priority
         />
       </div>
@@ -37,20 +37,16 @@ export function Sidebar() {
           const isActive = pathname === item.href;
 
           return (
-            // FIX: Removed legacyBehavior and passHref. Link now wraps the Button directly.
             <Link 
               key={item.name} 
               href={item.href} 
-              className="block w-full" // Added 'block w-full' to make the Link container fill the space
+              className="block w-full"
             >
-              {/* Button is now the direct child of Link */}
               <Button
                 variant={isActive ? 'default' : 'ghost'}
                 className={`w-full justify-start font-sans font-normal transition-colors duration-200
                   ${isActive 
-                    // Active link uses primary color (Dark Teal)
                     ? 'bg-primary text-primary-foreground hover:bg-rs-teal-light' 
-                    // Inactive link uses dark text (rs-dark) and hovers with a light teal accent
                     : 'text-rs-dark hover:bg-rs-teal-light/20'
                   }`
                 }
