@@ -16,17 +16,19 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname();
 
+  // Base classes ensure uniform width, font, transition, shadow, border thickness (border-2)
+  const baseButtonClasses = "w-full justify-start font-sans font-normal transition-all duration-200 shadow-md border-2";
+
   return (
     <div className="flex flex-col h-full w-64 border-r border-border bg-white shadow-md">
       
-      {/* Brand Logo Area - FIXED: Increased height to h-32 and adjusted image dimensions */}
-      {/* h-32 provides 8rem (128px) of vertical space, which should be sufficient */}
+      {/* Brand Logo Area */}
       <div className="p-2 border-b border-border flex items-center justify-center h-32">
         <Image
           src="/rs-logo.png" 
           alt="Rydberg Starck Logo"
           width={220} 
-          height={100} // Increased height to utilize the new container space
+          height={100} 
           priority
         />
       </div>
@@ -36,6 +38,13 @@ export function Sidebar() {
         {navItems.map((item) => {
           const isActive = pathname === item.href;
 
+          // Dynamically determine the class based on active status
+          const linkClasses = isActive
+            // ACTIVE STATE: Dark Teal background, Dark Teal border, White text
+            ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/90'
+            // INACTIVE STATE: Solid light primary color fill, Light border, White text
+            : 'bg-primary/50 text-primary-foreground border-primary/40 hover:bg-primary/60';
+
           return (
             <Link 
               key={item.name} 
@@ -43,13 +52,9 @@ export function Sidebar() {
               className="block w-full"
             >
               <Button
-                variant={isActive ? 'default' : 'ghost'}
-                className={`w-full justify-start font-sans font-normal transition-colors duration-200
-                  ${isActive 
-                    ? 'bg-primary text-primary-foreground hover:bg-rs-teal-light' 
-                    : 'text-rs-dark hover:bg-rs-teal-light/20'
-                  }`
-                }
+                // We must use 'default' variant to maintain the full button structure
+                variant="default"
+                className={`${baseButtonClasses} ${linkClasses}`}
               >
                 <span className="ml-3">{item.name}</span>
               </Button>
