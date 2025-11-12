@@ -1,6 +1,7 @@
 import { AppLayout } from "@/components/AppLayout";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"; // Assuming Card is installed
-import { Separator } from "@/components/ui/separator"; // Assuming Separator is installed
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"; 
+import { Separator } from "@/components/ui/separator"; 
+import { DepartmentDistributionChart } from "@/components/department-chart"; // Import the new chart
 
 export default function Home() {
   return (
@@ -17,8 +18,8 @@ export default function Home() {
         <Separator className="mt-4 bg-rs-teal-dark"/>
       </header>
 
-      {/* Main Dashboard Content Area */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* 1. Summary Cards Area (Existing) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         
         <Card>
           <CardHeader>
@@ -50,6 +51,27 @@ export default function Home() {
           </CardContent>
         </Card>
         
+      </div>
+      
+      {/* 2. Charts Area (New) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* New Chart Component */}
+          <DepartmentDistributionChart />
+          
+          {/* Placeholder for future chart or key metrics */}
+          <Card className="shadow-lg border-rs-teal-light">
+            <CardHeader>
+                <CardTitle className="font-heading text-rs-dark">Upcoming Feature</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p className="text-muted-foreground mt-2 font-sans">
+                    Space reserved for another key metric chart (e.g., Leave Trends).
+                </p>
+                <div className="h-[230px] flex items-center justify-center">
+                    <p className="text-rs-teal-light/50 font-heading text-xl">Rydberg Starck Insights</p>
+                </div>
+            </CardContent>
+          </Card>
       </div>
 
     </AppLayout>
