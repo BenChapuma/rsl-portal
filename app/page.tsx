@@ -1,7 +1,8 @@
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"; 
 import { Separator } from "@/components/ui/separator"; 
-import { DepartmentDistributionChart } from "@/components/department-chart"; // Import the new chart
+import { DepartmentDistributionChart } from "@/components/department-chart";
+import { RecruitmentPipelineFunnel } from "@/components/recruitment-funnel-chart"; // The new Doughnut Chart
 
 export default function Home() {
   return (
@@ -18,10 +19,10 @@ export default function Home() {
         <Separator className="mt-4 bg-rs-teal-dark"/>
       </header>
 
-      {/* 1. Summary Cards Area (Existing) */}
+      {/* 1. Summary Cards Area */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         
-        <Card>
+        <Card className="shadow-lg border-rs-teal-light">
           <CardHeader>
             <CardTitle className="font-heading text-rs-teal-dark">Total Employees</CardTitle>
           </CardHeader>
@@ -31,7 +32,7 @@ export default function Home() {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="shadow-lg border-rs-teal-light">
           <CardHeader>
             <CardTitle className="font-heading text-rs-teal-dark">New Applicants</CardTitle>
           </CardHeader>
@@ -41,7 +42,7 @@ export default function Home() {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="shadow-lg border-rs-teal-light">
           <CardHeader>
             <CardTitle className="font-heading text-rs-teal-dark">Pending Approvals</CardTitle>
           </CardHeader>
@@ -53,25 +54,13 @@ export default function Home() {
         
       </div>
       
-      {/* 2. Charts Area (New) */}
+      {/* 2. Charts Area (Now fully populated with two distinct chart types) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* New Chart Component */}
+          {/* Chart 1: Employee Distribution (Bar Chart) */}
           <DepartmentDistributionChart />
           
-          {/* Placeholder for future chart or key metrics */}
-          <Card className="shadow-lg border-rs-teal-light">
-            <CardHeader>
-                <CardTitle className="font-heading text-rs-dark">Upcoming Feature</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <p className="text-muted-foreground mt-2 font-sans">
-                    Space reserved for another key metric chart (e.g., Leave Trends).
-                </p>
-                <div className="h-[230px] flex items-center justify-center">
-                    <p className="text-rs-teal-light/50 font-heading text-xl">Rydberg Starck Insights</p>
-                </div>
-            </CardContent>
-          </Card>
+          {/* Chart 2: Recruitment Funnel (Doughnut Chart) */}
+          <RecruitmentPipelineFunnel />
       </div>
 
     </AppLayout>
