@@ -1,29 +1,29 @@
+// app/employees/page.tsx
+
 import { AppLayout } from "@/components/AppLayout";
+import { EmployeesTable } from "@/components/employees-table";
 import { Separator } from "@/components/ui/separator";
-import { EmployeesTable } from "@/components/employees-table"; // Imports the table logic
+import { EmployeeCreateForm } from "@/components/employee-create-form"; // Import the new form
 
 export default function EmployeesPage() {
   return (
     <AppLayout>
-      
-      {/* Header - Uses Brand Colors and Fonts */}
       <header className="mb-8">
         <h1 className="text-4xl font-heading text-rs-dark">
           Employee Directory
         </h1>
         <p className="text-lg font-sans text-rs-teal-light">
-          Manage and view details for all active Rydberg Starck personnel.
+          Manage all active, inactive, and prospective Rydberg Starck personnel.
         </p>
-        {/* Separator uses the rs-teal-dark color */}
-        <Separator className="mt-4 bg-rs-teal-dark"/>
+        <Separator className="mt-4 bg-rs-teal-dark" />
       </header>
 
-      {/* Employee Data Table */}
-      <div className="w-full">
-        {/* The data table is rendered here */}
-        <EmployeesTable /> 
+      {/* NEW: Add the form component above the table */}
+      <div className="flex justify-end mb-6">
+          <EmployeeCreateForm />
       </div>
 
+      <EmployeesTable />
     </AppLayout>
   );
 }
