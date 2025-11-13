@@ -1,128 +1,19 @@
 'use client';
 
-import * as React from "react";
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-
-// Import the base UI components you installed
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import React, { useState, useEffect } from "react";
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge"; 
+import { Button } from "@/components/ui/button";
 
-// 1. Define the Data Structure (Interface)
-export type Employee = {
-  id: string;
-  name: string;
-  email: string;
-  department: "Innovations" | "Engineering" | "Energies" | "Administration";
-  status: "Active" | "Terminated" | "On Leave";
-};
-
-// 2. Define the Columns
-export const columns: ColumnDef<Employee>[] = [
-  {
-    accessorKey: "name",
-    // Use the heading font for column titles
-    header: ({ column }) => <span className="font-heading text-sm">Employee Name</span>, 
-    cell: ({ row }) => {
-      // Use the branded rs-dark color for the name
-      return <span className="font-heading text-rs-dark">{row.getValue("name")}</span>;
-    },
-  },
-  {
-    accessorKey: "department",
-    header: ({ column }) => <span className="font-heading text-sm">Department</span>,
-  },
-  {
-    accessorKey: "email",
-    header: ({ column }) => <span className="font-heading text-sm">Email</span>,
-  },
-  {
-    accessorKey: "status",
-    header: ({ column }) => <span className="font-heading text-sm">Status</span>,
-    cell: ({ row }) => {
-      const status = row.getValue("status") as Employee["status"];
-      let colorClass: string;
-
-      if (status === "On Leave") {
-        // Yellow/Caution colors
-        colorClass = "bg-yellow-100 text-yellow-800 hover:bg-yellow-100";
-      } else if (status === "Terminated") {
-        // Destructive colors
-        colorClass = "bg-destructive/20 text-destructive hover:bg-destructive/20";
-      } else {
-        // Active status uses Primary brand color (Dark Teal Accent)
-        colorClass = "bg-primary/20 text-primary hover:bg-primary/20";
-      }
-
-      return (
-        <Badge className={`font-sans font-medium ${colorClass}`}>
-          {status}
-        </Badge>
-      );
-    },
-  },
-];
-
-// 3. Dummy Data
-export const employeeData: Employee[] = [
-  {
-    id: "RS1001",
-    name: "Alex Johnson",
-    email: "alex.j@rslimited.com",
-    department: "Innovations",
-    status: "Active",
-  },
-  {
-    id: "RS1002",
-    name: "Sarah Williams",
-    email: "sarah.w@rslimited.com",
-    department: "Engineering",
-    status: "Active",
-  },
-  {
-    id: "RS1003",
-    name: "Robert Brown",
-    email: "robert.b@rslimited.com",
-    department: "Energies",
-    status: "On Leave",
-  },
-  {
-    id: "RS1004",
-    name: "Emily Davis",
-    email: "emily.d@rslimited.com",
-    department: "Administration",
-    status: "Active",
-  },
-  {
-    id: "RS1005",
-    name: "Michael Wilson",
-    email: "michael.w@rslimited.com",
-    department: "Innovations",
-    status: "Terminated",
-  },
-];
-
-// 4. Custom DataTable Component (The wrapper that was missing)
+// --- 1. GENERIC DATATABLE COMPONENT (Now defined here) ---
+// This is the reusable component that renders the table structure.
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
 }
 
-export function DataTable<TData, TValue>({
-  columns,
-  data,
-}: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
     columns,
@@ -130,14 +21,14 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="rounded-md border border-rs-teal-light">
+    <div className="rounded-md border shadow-lg border-rs-teal-light">
       <Table>
-        <TableHeader className="bg-rs-teal-light/20">
+        <TableHeader className="bg-rs-teal-light/10">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
                 return (
-                  <TableHead key={header.id}>
+                  <TableHead key={header.id} className="font-heading text-rs-dark">
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -153,11 +44,9 @@ export function DataTable<TData, TValue>({
         <TableBody>
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
-              // On hover, lightly highlight the row with the rs-teal-light color
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
-                className="hover:bg-rs-teal-light/5" 
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
@@ -179,10 +68,107 @@ export function DataTable<TData, TValue>({
   );
 }
 
+// --- 2. DATA STRUCTURE & COLUMNS ---
+export type Employee = {
+  id: string;
+  name: string;
+  email: string;
+  department: string;
+  status: string;
+  salary: number;
+  hireDate: Date;
+};
 
-// 5. Component for app/employees/page.tsx to use
+export const columns: ColumnDef<Employee>[] = [
+  {
+    accessorKey: "name",
+    header: () => <span className="font-heading text-sm">Employee</span>, 
+    cell: ({ row }) => {
+      return <span className="font-heading text-rs-dark">{row.getValue("name")}</span>;
+    },
+  },
+  {
+    accessorKey: "email",
+    header: () => <span className="font-heading text-sm">Email</span>,
+  },
+  {
+    accessorKey: "department",
+    header: () => <span className="font-heading text-sm">Department</span>,
+  },
+  {
+    accessorKey: "hireDate",
+    header: () => <span className="font-heading text-sm">Hire Date</span>,
+    cell: ({ row }) => {
+      const date = new Date(row.getValue("hireDate") as string);
+      return date.toLocaleDateString("en-US");
+    },
+  },
+  {
+    accessorKey: "status",
+    header: () => <span className="font-heading text-sm">Status</span>,
+    cell: ({ row }) => {
+      const status = row.getValue("status") as string;
+      let colorClass: string;
+
+      if (status === "Active") {
+        colorClass = "bg-primary/20 text-primary hover:bg-primary/20";
+      } else if (status === "Terminated") {
+        colorClass = "bg-destructive/20 text-destructive hover:bg-destructive/20";
+      } else {
+        colorClass = "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"; // On Leave
+      }
+
+      return (
+        <Badge className={`font-sans font-medium ${colorClass}`}>
+          {status}
+        </Badge>
+      );
+    },
+  },
+  {
+    id: "actions",
+    header: () => <span className="font-heading text-sm">Actions</span>,
+    cell: () => (
+      <Button size="sm" variant="secondary" className="text-xs">
+        View
+      </Button>
+    ),
+  },
+];
+
+
+// --- 3. DATA FETCHING COMPONENT (The main export) ---
 export function EmployeesTable() {
-  return (
-    <DataTable columns={columns} data={employeeData} />
-  );
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchEmployees() {
+      try {
+        const response = await fetch('/api/employees');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data: Employee[] = await response.json();
+        setEmployees(data); 
+      } catch (error) {
+        console.error("Failed to fetch employee data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchEmployees();
+  }, []);
+
+  if (loading) {
+    return <div className="p-4 text-rs-teal-light font-heading text-lg">Loading employee data...</div>;
+  }
+
+  if (employees.length === 0) {
+    return <div className="p-4 text-muted-foreground font-sans">No employees found in the database.</div>;
+  }
+
+  // Pass the live data to the locally defined DataTable component
+  return <DataTable columns={columns} data={employees} />;
 }
