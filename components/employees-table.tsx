@@ -1,13 +1,13 @@
+// components/employees-table.tsx
 'use client';
 
-import React, { useState, useEffect } from "react";
+// Removed: import React, { useState, useEffect } from "react";
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge"; 
 import { Button } from "@/components/ui/button";
 
-// --- 1. GENERIC DATATABLE COMPONENT (Now defined here) ---
-// This is the reusable component that renders the table structure.
+// --- 1. GENERIC DATATABLE COMPONENT ---
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -69,6 +69,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 }
 
 // --- 2. DATA STRUCTURE & COLUMNS ---
+// Export Employee type for use in page.tsx
 export type Employee = {
   id: string;
   name: string;
@@ -76,7 +77,7 @@ export type Employee = {
   department: string;
   status: string;
   salary: number;
-  hireDate: Date;
+  hireDate: Date; // Note: Dates from Prisma are typed as Date, but often passed as string/ISO in JSON
 };
 
 export const columns: ColumnDef<Employee>[] = [
@@ -84,7 +85,8 @@ export const columns: ColumnDef<Employee>[] = [
     accessorKey: "name",
     header: () => <span className="font-heading text-sm">Employee</span>, 
     cell: ({ row }) => {
-      return <span className="font-heading text-rs-dark">{row.getValue("name")}</span>;
+      // FIX: Accessor key must match column definition
+      return <span className="font-heading text-rs-dark">{row.original.name}</span>;
     },
   },
   {
@@ -99,7 +101,12 @@ export const columns: ColumnDef<Employee>[] = [
     accessorKey: "hireDate",
     header: () => <span className="font-heading text-sm">Hire Date</span>,
     cell: ({ row }) => {
-      const date = new Date(row.getValue("hireDate") as string);
+      // Assuming row.getValue is a string or Date object
+      const dateValue = row.getValue("hireDate");
+      const date = dateValue instanceof Date 
+        ? dateValue 
+        : new Date(dateValue as string);
+        
       return date.toLocaleDateString("en-US");
     },
   },
@@ -137,38 +144,20 @@ export const columns: ColumnDef<Employee>[] = [
 ];
 
 
-// --- 3. DATA FETCHING COMPONENT (The main export) ---
-export function EmployeesTable() {
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [loading, setLoading] = useState(true);
+// --- 3. DATA RENDERING COMPONENT (The main export) ---
+// FIX: EmployeesTable now accepts the data as a prop
+export function EmployeesTable({ employees }: { employees: Employee[] }) {
+  // Removed: useState and useEffect for data fetching
 
-  useEffect(() => {
-    async function fetchEmployees() {
-      try {
-        const response = await fetch('/api/employees');
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data: Employee[] = await response.json();
-        setEmployees(data); 
-      } catch (error) {
-        console.error("Failed to fetch employee data:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchEmployees();
-  }, []);
-
-  if (loading) {
-    return <div className="p-4 text-rs-teal-light font-heading text-lg">Loading employee data...</div>;
+  if (!employees) {
+     // This shouldn't happen if the server component is setup correctly, but good for safety
+    return <div className="p-4 text-muted-foreground font-sans">Error loading data.</div>;
   }
-
+  
   if (employees.length === 0) {
     return <div className="p-4 text-muted-foreground font-sans">No employees found in the database.</div>;
   }
 
-  // Pass the live data to the locally defined DataTable component
+  // Pass the data received from the page.tsx component
   return <DataTable columns={columns} data={employees} />;
 }

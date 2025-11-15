@@ -125,7 +125,8 @@ export function EmployeeCreateForm() {
 
       form.reset();
       setOpen(false);
-      router.refresh();
+      // This call forces the server component (app/employees/page.tsx) to re-render
+      router.refresh(); 
 
     } catch (error) {
       console.error("Employee creation error:", error);

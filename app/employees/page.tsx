@@ -1,11 +1,29 @@
 // app/employees/page.tsx
 
 import { AppLayout } from "@/components/AppLayout";
-import { EmployeesTable } from "@/components/employees-table";
+// FIX 2: Import the EmployeesTable component AND the Employee type it exports.
+import { EmployeesTable, Employee } from "@/components/employees-table"; 
 import { Separator } from "@/components/ui/separator";
-import { EmployeeCreateForm } from "@/components/employee-create-form"; // Import the new form
+import { EmployeeCreateForm } from "@/components/employee-create-form";
 
-export default function EmployeesPage() {
+// FIX 1: Import PrismaClient directly from the client package.
+import { PrismaClient } from '@prisma/client';
+
+// Instantiate the Prisma Client (Recommended for server components if a singleton isn't used)
+const prisma = new PrismaClient();
+
+// Use the imported Employee type from the table component
+type EmployeeType = Employee;
+
+// Convert the function to 'async' to enable data fetching on the server
+export default async function EmployeesPage() {
+  
+  // SERVER-SIDE DATA FETCHING: This is the code block that router.refresh() re-runs.
+  // The 'employee' property is now correctly recognized.
+  const employees: EmployeeType[] = await prisma.employee.findMany({
+    orderBy: { createdAt: 'desc' }, 
+  }) as EmployeeType[];
+
   return (
     <AppLayout>
       <header className="mb-8">
@@ -18,12 +36,12 @@ export default function EmployeesPage() {
         <Separator className="mt-4 bg-rs-teal-dark" />
       </header>
 
-      {/* NEW: Add the form component above the table */}
       <div className="flex justify-end mb-6">
           <EmployeeCreateForm />
       </div>
 
-      <EmployeesTable />
+      {/* PASSING THE PROP: The EmployeesTable component must now receive the data. */}
+      <EmployeesTable employees={employees} />
     </AppLayout>
   );
 }
