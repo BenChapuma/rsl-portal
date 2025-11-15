@@ -47,7 +47,7 @@ const DEPARTMENT_NAMES = [
   "Administration"
 ] as const;
 
-// --- Zod Schema (FULLY Zod v3 Compatible) ---
+// --- Zod Schema ---
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "Name must be at least 2 characters.",
@@ -73,7 +73,6 @@ const formSchema = z.object({
   }),
 
   hireDate: z.date().superRefine((val, ctx) => {
-    // Zod v3-compatible date validation with custom error
     if (!(val instanceof Date) || isNaN(val.getTime())) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -85,21 +84,23 @@ const formSchema = z.object({
 
 type EmployeeFormValues = z.infer<typeof formSchema>;
 
-
 // --- Component ---
 export function EmployeeCreateForm() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
+  // Define default values
+  const defaultFormValues: EmployeeFormValues = {
+    name: "",
+    email: "",
+    department: DEPARTMENT_NAMES[0], 
+    salary: "70000",
+    hireDate: new Date(),
+  };
+
   const form = useForm<EmployeeFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      department: DEPARTMENT_NAMES[0], // default
-      salary: "70000",
-      hireDate: new Date(),
-    },
+    defaultValues: defaultFormValues,
   });
 
   const { isSubmitting } = form.formState;
@@ -123,9 +124,14 @@ export function EmployeeCreateForm() {
         throw new Error("Failed to create employee");
       }
 
-      form.reset();
+      // 1. FIX: Reset the form immediately after successful submission
+      // This is necessary because the dialog hides the form without unmounting it.
+      form.reset(defaultFormValues); 
+
+      // 2. Close the dialog.
       setOpen(false);
-      // This call forces the server component (app/employees/page.tsx) to re-render
+      
+      // 3. Trigger the page refresh.
       router.refresh(); 
 
     } catch (error) {
@@ -134,8 +140,18 @@ export function EmployeeCreateForm() {
     }
   }
 
+  // FIX: Reset form state when the dialog is opened (when `open` changes to true)
+  const handleOpenChange = (newOpenState: boolean) => {
+    setOpen(newOpenState);
+    if (newOpenState === false) {
+      // Reset form to default values only when closing, 
+      // ensuring the next time it opens it's clean.
+      form.reset(defaultFormValues);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button className="bg-primary hover:bg-primary/90 font-heading">
           <Plus className="w-4 h-4 mr-2" />
