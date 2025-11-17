@@ -1,11 +1,11 @@
 // components/employees-table.tsx
 'use client';
 
-// Removed: import React, { useState, useEffect } from "react";
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge"; 
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation"; // Import the router for refresh
 
 // --- 1. GENERIC DATATABLE COMPONENT ---
 interface DataTableProps<TData, TValue> {
@@ -69,23 +69,60 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 }
 
 // --- 2. DATA STRUCTURE & COLUMNS ---
-// Export Employee type for use in page.tsx
 export type Employee = {
-  id: string;
+  id: string; // Crucial for DELETE
   name: string;
   email: string;
   department: string;
   status: string;
   salary: number;
-  hireDate: Date; // Note: Dates from Prisma are typed as Date, but often passed as string/ISO in JSON
+  hireDate: Date; 
 };
 
-export const columns: ColumnDef<Employee>[] = [
+// --- DELETE HANDLER ---
+async function handleDelete(employeeId: string, router: ReturnType<typeof useRouter>) {
+  if (!employeeId || typeof employeeId !== 'string') {
+    alert("Error: Invalid employee ID.");
+    return;
+  }
+  
+  if (!confirm("Are you sure you want to delete this employee? This action cannot be undone.")) {
+    return;
+  }
+
+  try {
+    const deleteUrl = `/api/employees/${employeeId}`; 
+    console.log("Attempting DELETE on URL:", deleteUrl);
+
+    const response = await fetch(deleteUrl, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      // Improved error logging based on your console output
+      const errorText = await response.text();
+      console.error("Server Delete Response Error:", response.status, errorText);
+      throw new Error(`Failed to delete employee: Status ${response.status}. Server message: ${errorText.substring(0, 100)}`);
+    }
+
+    // Refresh the page to update the table immediately
+    router.refresh(); 
+    alert("Employee successfully deleted.");
+
+  } catch (error) {
+    // Display the more detailed error from the catch block
+    console.error("Employee deletion error:", error);
+    // Use the error message from the throw statement if available
+    alert((error as Error).message || "An unexpected error occurred during deletion.");
+  }
+}
+
+// The columns definition is now a function to access the router hook
+export const getColumns = (router: ReturnType<typeof useRouter>): ColumnDef<Employee>[] => [
   {
     accessorKey: "name",
     header: () => <span className="font-heading text-sm">Employee</span>, 
     cell: ({ row }) => {
-      // FIX: Accessor key must match column definition
       return <span className="font-heading text-rs-dark">{row.original.name}</span>;
     },
   },
@@ -101,7 +138,6 @@ export const columns: ColumnDef<Employee>[] = [
     accessorKey: "hireDate",
     header: () => <span className="font-heading text-sm">Hire Date</span>,
     cell: ({ row }) => {
-      // Assuming row.getValue is a string or Date object
       const dateValue = row.getValue("hireDate");
       const date = dateValue instanceof Date 
         ? dateValue 
@@ -122,7 +158,7 @@ export const columns: ColumnDef<Employee>[] = [
       } else if (status === "Terminated") {
         colorClass = "bg-destructive/20 text-destructive hover:bg-destructive/20";
       } else {
-        colorClass = "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"; // On Leave
+        colorClass = "bg-yellow-100 text-yellow-800 hover:bg-yellow-100";
       }
 
       return (
@@ -135,26 +171,32 @@ export const columns: ColumnDef<Employee>[] = [
   {
     id: "actions",
     header: () => <span className="font-heading text-sm">Actions</span>,
-    cell: () => (
-      <Button size="sm" variant="secondary" className="text-xs">
-        View
-      </Button>
+    cell: ({ row }) => (
+      <div className="flex space-x-2">
+          <Button size="sm" variant="secondary" className="text-xs">
+            Edit
+          </Button>
+          <Button 
+            size="sm" 
+            variant="destructive" 
+            className="text-xs"
+            onClick={() => handleDelete(row.original.id, router)} // CRITICAL: Passes the ID and router
+          >
+            Delete
+          </Button>
+      </div>
     ),
   },
 ];
 
 
 // --- 3. DATA RENDERING COMPONENT (The main export) ---
-// FIX: EmployeesTable now accepts the data as a prop
 export function EmployeesTable({ employees }: { employees: Employee[] }) {
-  // Removed: useState and useEffect for data fetching
-
-  if (!employees) {
-     // This shouldn't happen if the server component is setup correctly, but good for safety
-    return <div className="p-4 text-muted-foreground font-sans">Error loading data.</div>;
-  }
+  const router = useRouter(); // CRITICAL: This hook must be called inside the client component
+  // Call getColumns function to generate columns, passing the router
+  const columns = getColumns(router);
   
-  if (employees.length === 0) {
+  if (!employees || employees.length === 0) {
     return <div className="p-4 text-muted-foreground font-sans">No employees found in the database.</div>;
   }
 
