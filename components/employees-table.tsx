@@ -6,6 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"; 
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation"; // Import the router for refresh
+import { useState } from "react"; // <-- NEW: Import useState for dialog control
+import { EmployeeDetailDialog } from "@/components/EmployeeDetailDialog"; // <-- NEW: Import the view dialog
 
 // --- 1. GENERIC DATATABLE COMPONENT ---
 interface DataTableProps<TData, TValue> {
@@ -70,7 +72,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 
 // --- 2. DATA STRUCTURE & COLUMNS ---
 export type Employee = {
-  id: string; // Crucial for DELETE
+  id: string; // Crucial for DELETE and GET
   name: string;
   email: string;
   department: string;
@@ -79,7 +81,7 @@ export type Employee = {
   hireDate: Date; 
 };
 
-// --- DELETE HANDLER ---
+// --- DELETE HANDLER (Your working logic) ---
 async function handleDelete(employeeId: string, router: ReturnType<typeof useRouter>) {
   if (!employeeId || typeof employeeId !== 'string') {
     alert("Error: Invalid employee ID.");
@@ -99,7 +101,6 @@ async function handleDelete(employeeId: string, router: ReturnType<typeof useRou
     });
 
     if (!response.ok) {
-      // Improved error logging based on your console output
       const errorText = await response.text();
       console.error("Server Delete Response Error:", response.status, errorText);
       throw new Error(`Failed to delete employee: Status ${response.status}. Server message: ${errorText.substring(0, 100)}`);
@@ -110,15 +111,16 @@ async function handleDelete(employeeId: string, router: ReturnType<typeof useRou
     alert("Employee successfully deleted.");
 
   } catch (error) {
-    // Display the more detailed error from the catch block
     console.error("Employee deletion error:", error);
-    // Use the error message from the throw statement if available
     alert((error as Error).message || "An unexpected error occurred during deletion.");
   }
 }
 
-// The columns definition is now a function to access the router hook
-export const getColumns = (router: ReturnType<typeof useRouter>): ColumnDef<Employee>[] => [
+// The columns definition is now a function to access handlers
+export const getColumns = (
+    router: ReturnType<typeof useRouter>,
+    handleView: (id: string) => void // <-- NEW PARAMETER: Handler for the View button
+): ColumnDef<Employee>[] => [
   {
     accessorKey: "name",
     header: () => <span className="font-heading text-sm">Employee</span>, 
@@ -138,6 +140,7 @@ export const getColumns = (router: ReturnType<typeof useRouter>): ColumnDef<Empl
     accessorKey: "hireDate",
     header: () => <span className="font-heading text-sm">Hire Date</span>,
     cell: ({ row }) => {
+      // Logic to correctly format Date objects or date strings
       const dateValue = row.getValue("hireDate");
       const date = dateValue instanceof Date 
         ? dateValue 
@@ -173,14 +176,19 @@ export const getColumns = (router: ReturnType<typeof useRouter>): ColumnDef<Empl
     header: () => <span className="font-heading text-sm">Actions</span>,
     cell: ({ row }) => (
       <div className="flex space-x-2">
-          <Button size="sm" variant="secondary" className="text-xs">
-            Edit
+          <Button 
+            size="sm" 
+            variant="secondary" 
+            className="text-xs"
+            onClick={() => handleView(row.original.id)} // <-- VIEW LOGIC ADDED
+          >
+            View
           </Button>
           <Button 
             size="sm" 
             variant="destructive" 
             className="text-xs"
-            onClick={() => handleDelete(row.original.id, router)} // CRITICAL: Passes the ID and router
+            onClick={() => handleDelete(row.original.id, router)} // Delete logic
           >
             Delete
           </Button>
@@ -192,14 +200,39 @@ export const getColumns = (router: ReturnType<typeof useRouter>): ColumnDef<Empl
 
 // --- 3. DATA RENDERING COMPONENT (The main export) ---
 export function EmployeesTable({ employees }: { employees: Employee[] }) {
-  const router = useRouter(); // CRITICAL: This hook must be called inside the client component
-  // Call getColumns function to generate columns, passing the router
-  const columns = getColumns(router);
+  const router = useRouter(); 
+  
+  // <-- NEW STATE FOR VIEW DIALOG -->
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
+
+  // Function to handle the opening of the dialog
+  const handleView = (employeeId: string) => {
+    setSelectedEmployeeId(employeeId);
+    setIsViewOpen(true);
+  };
+  // ---------------------------------
+
+  // Call getColumns function, passing the router and the new handler
+  const columns = getColumns(router, handleView); // <-- UPDATED CALL
   
   if (!employees || employees.length === 0) {
     return <div className="p-4 text-muted-foreground font-sans">No employees found in the database.</div>;
   }
 
   // Pass the data received from the page.tsx component
-  return <DataTable columns={columns} data={employees} />;
+  return (
+    <>
+      <DataTable columns={columns} data={employees} />
+
+      {/* RENDER THE NEW DIALOG */}
+      {selectedEmployeeId && (
+        <EmployeeDetailDialog 
+          employeeId={selectedEmployeeId}
+          open={isViewOpen}
+          onOpenChange={setIsViewOpen} // Passes a function to close the dialog
+        />
+      )}
+    </>
+  );
 }
